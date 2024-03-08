@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { plainToClass } from 'class-transformer';
 
-import { CreateUserDto } from './dto/create-user.dto';
-import { GetUserDto } from './dto/get-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { DatabaseService } from '../database/database.service';
 import {
   IncorrectOldPasswordException,
   UserNotFoundException,
 } from './exceptions/http-exceptions';
-import { plainToClass } from 'class-transformer';
-import { getUserDto } from 'src/database/models/dto.model';
+
+import { CreateUserDto } from './dto/create-user.dto';
+import { GetUserDto } from './dto/get-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -49,7 +49,7 @@ export class UsersService {
       throw new IncorrectOldPasswordException();
     }
 
-    const updatedUser: getUserDto = {
+    const updatedUser: GetUserDto = {
       ...user,
       password: newPassword,
     };
