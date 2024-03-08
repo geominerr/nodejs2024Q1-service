@@ -1,18 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
-import { User } from './models/db.model';
-import { createUserDto, getUserDto } from './models/dto.model';
+import { Album, Artist, Track, User } from './models/db.model';
+import { ICreateUserDto, IGetUserDto } from './models/user-dto.model';
+import { ICreateTrackDto, IGetTrackDto } from './models/track-dto.model';
 
 @Injectable()
 export class DatabaseService {
   users: Map<string, User>;
+  artists: Map<string, Artist>;
+  albums: Map<string, Album>;
+  tracks: Map<string, Track>;
+  favorites = {
+    artists: new Map(),
+    albums: new Map(),
+    tracks: new Map(),
+  };
 
   constructor() {
     this.users = new Map();
+    this.tracks = new Map();
+    this.artists = new Map();
+    this.albums = new Map();
   }
 
-  public async createUser(dto: createUserDto): Promise<User | null> {
+  // users
+  public async createUser(dto: ICreateUserDto): Promise<User> {
     const uuid = randomUUID();
     const timestamp = new Date().getTime();
 
@@ -37,7 +50,7 @@ export class DatabaseService {
     return [...this.users.values()];
   }
 
-  public async updateUser(id: string, dto: getUserDto): Promise<User> {
+  public async updateUser(id: string, dto: IGetUserDto): Promise<User> {
     const updatedUser: User = {
       ...dto,
       version: dto.version + 1,
@@ -51,5 +64,41 @@ export class DatabaseService {
 
   public async removeUser(id: string): Promise<boolean> {
     return this.users.delete(id);
+  }
+
+  // tracks
+  public async createTrack(dto: ICreateTrackDto): Promise<Track> {
+    const uuid = randomUUID();
+
+    const track: Track = {
+      ...dto,
+      id: uuid,
+    };
+
+    this.tracks.set(uuid, track);
+
+    return track;
+  }
+
+  public async getTrack(id: string): Promise<Track | undefined> {
+    return this.tracks.get(id);
+  }
+
+  public async getAllTracks(): Promise<Track[]> {
+    return [...this.tracks.values()];
+  }
+
+  public async updateTrack(id: string, dto: IGetTrackDto): Promise<Track> {
+    const updatedtrack: Track = {
+      ...dto,
+    };
+
+    this.tracks.set(id, updatedtrack);
+
+    return updatedtrack;
+  }
+
+  public async removeTrack(id: string): Promise<boolean> {
+    return this.tracks.delete(id);
   }
 }
