@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 
-import { DatabaseService } from '../database/database.service';
+import { DatabaseService } from '../../database/database.service';
 import { TrackNotFoundException } from './exceptions/http-exceptions';
 
 import { CreateTrackDto } from './dto/create-track.dto';

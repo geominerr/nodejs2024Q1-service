@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { DatabaseService } from '../database/database.service';
+import { DatabaseService } from '../../database/database.service';
 import { FavoriteEntityType } from './entities/favorite.entity';
 import {
   EntityNotFoundException,
