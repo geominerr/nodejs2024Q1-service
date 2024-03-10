@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { plainToClass } from 'class-transformer';
 
 import { DatabaseService } from '../../database/database.service';
 
+import { Album } from './entities/album.entity';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { plainToClass } from 'class-transformer';
-import { Album } from './entities/album.entity';
 import { AlbumNotFoundException } from './exceptions/http-exceptions';
 
 @Injectable()
