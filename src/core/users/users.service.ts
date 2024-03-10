@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 
 import { DatabaseService } from '../../database/database.service';
+
+import { User } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import {
   IncorrectOldPasswordException,
   UserNotFoundException,
 } from './exceptions/http-exceptions';
-
-import { CreateUserDto } from './dto/create-user.dto';
-import { GetUserDto } from './dto/get-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -18,13 +18,13 @@ export class UsersService {
   async create(createUserDto: CreateUserDto) {
     const user = await this.db.createUser(createUserDto);
 
-    return plainToClass(GetUserDto, user);
+    return plainToClass(User, user);
   }
 
   async findAll() {
     const users = await this.db.getAllUsers();
 
-    return users.map((user) => plainToClass(GetUserDto, user));
+    return users.map((user) => plainToClass(User, user));
   }
 
   async findOne(id: string) {
@@ -34,7 +34,7 @@ export class UsersService {
       throw new UserNotFoundException();
     }
 
-    return plainToClass(GetUserDto, user);
+    return plainToClass(User, user);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -49,14 +49,14 @@ export class UsersService {
       throw new IncorrectOldPasswordException();
     }
 
-    const updatedUser: GetUserDto = {
+    const updatedUser: User = {
       ...user,
       password: newPassword,
     };
 
     const res = this.db.updateUser(id, updatedUser);
 
-    return plainToClass(GetUserDto, res);
+    return plainToClass(User, res);
   }
 
   async remove(id: string) {

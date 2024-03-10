@@ -5,7 +5,7 @@ import { DatabaseService } from '../../database/database.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { plainToClass } from 'class-transformer';
-import { GetAlbumDto } from './dto/get-album.dto';
+import { Album } from './entities/album.entity';
 import { AlbumNotFoundException } from './exceptions/http-exceptions';
 
 @Injectable()
@@ -15,13 +15,13 @@ export class AlbumsService {
   async create(createAlbumDto: CreateAlbumDto) {
     const album = await this.db.createAlbum(createAlbumDto);
 
-    return plainToClass(GetAlbumDto, album);
+    return plainToClass(Album, album);
   }
 
   async findAll() {
     const albums = await this.db.getAllAlbums();
 
-    return albums.map((album) => plainToClass(GetAlbumDto, album));
+    return albums.map((album) => plainToClass(Album, album));
   }
 
   async findOne(id: string) {
@@ -31,7 +31,7 @@ export class AlbumsService {
       throw new AlbumNotFoundException();
     }
 
-    return plainToClass(GetAlbumDto, album);
+    return plainToClass(Album, album);
   }
 
   async update(id: string, updateAlbumDto: UpdateAlbumDto) {
@@ -41,7 +41,7 @@ export class AlbumsService {
       throw new AlbumNotFoundException();
     }
 
-    return plainToClass(GetAlbumDto, album);
+    return plainToClass(Album, album);
   }
 
   async remove(id: string) {

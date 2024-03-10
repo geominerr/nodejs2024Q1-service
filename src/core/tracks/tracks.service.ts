@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { plainToClass } from 'class-transformer';
 
 import { DatabaseService } from '../../database/database.service';
-import { TrackNotFoundException } from './exceptions/http-exceptions';
 
+import { Track } from './entities/track.entity';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import { GetTrackDto } from './dto/get-track.dto';
+import { TrackNotFoundException } from './exceptions/http-exceptions';
 
 @Injectable()
 export class TracksService {
@@ -15,13 +15,13 @@ export class TracksService {
   async create(createTrackDto: CreateTrackDto) {
     const track = await this.db.createTrack(createTrackDto);
 
-    return plainToClass(GetTrackDto, track);
+    return plainToClass(Track, track);
   }
 
   async findAll() {
     const tracks = await this.db.getAllTracks();
 
-    return tracks.map((track) => plainToClass(GetTrackDto, track));
+    return tracks.map((track) => plainToClass(Track, track));
   }
 
   async findOne(id: string) {
@@ -31,7 +31,7 @@ export class TracksService {
       throw new TrackNotFoundException();
     }
 
-    return plainToClass(GetTrackDto, track);
+    return plainToClass(Track, track);
   }
 
   async update(id: string, updateTrackDto: UpdateTrackDto) {
@@ -41,14 +41,14 @@ export class TracksService {
       throw new TrackNotFoundException();
     }
 
-    const updatedTrack: GetTrackDto = {
+    const updatedTrack: Track = {
       ...track,
       ...updateTrackDto,
     };
 
     const res = this.db.updateTrack(id, updatedTrack);
 
-    return plainToClass(GetTrackDto, res);
+    return plainToClass(Track, res);
   }
 
   async remove(id: string) {
