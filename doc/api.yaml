@@ -722,7 +722,7 @@ components:
           example: 550e8400-e29b-41d4-a716-446655440003
           nullable: true
         duration:
-          type: number
+          type: integer
           description: Duration in seconds
           example: 300
       required:
@@ -763,7 +763,7 @@ components:
           type: object
           example: UUID or null
         duration:
-          type: number
+          type: integer
           example: 1444
       required:
         - name
@@ -783,7 +783,7 @@ components:
           type: string
           example: UUID or null
         duration:
-          type: number
+          type: integer
           example: 777
       required:
         - name
@@ -811,7 +811,7 @@ components:
           type: string
           example: john_doe
         version:
-          type: number
+          type: integer
           description: Integer number, increments on update
           example: 1
         createdAt:
