@@ -24,6 +24,10 @@ export class Track {
   })
   albumId: string | null;
 
-  @ApiProperty({ description: 'Duration in seconds', example: 300 })
+  @ApiProperty({
+    description: 'Duration in seconds',
+    example: 300,
+    type: 'integer',
+  })
   duration: number;
 }

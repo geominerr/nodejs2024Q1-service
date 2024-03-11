@@ -18,6 +18,7 @@ export class User {
   @ApiProperty({
     description: 'Integer number, increments on update',
     example: 1,
+    type: 'integer',
   })
   version: number;
 
