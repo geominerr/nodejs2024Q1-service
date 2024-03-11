@@ -46,7 +46,7 @@ export class TracksService {
       ...updateTrackDto,
     };
 
-    const res = this.db.updateTrack(id, updatedTrack);
+    const res = await this.db.updateTrack(id, updatedTrack);
 
     return plainToClass(Track, res);
   }

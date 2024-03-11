@@ -54,7 +54,7 @@ export class UsersService {
       password: newPassword,
     };
 
-    const res = this.db.updateUser(id, updatedUser);
+    const res = await this.db.updateUser(id, updatedUser);
 
     return plainToClass(User, res);
   }
