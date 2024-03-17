@@ -12,7 +12,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(new ValidationPipe());
-  setupSwagger(app, port);
+  setupSwagger(app);
 
   await app.listen(port);
 }
