@@ -597,7 +597,7 @@ info:
   contact: {}
 tags: []
 servers:
-  - url: http://localhost:4000
+  - url: /
 components:
   schemas:
     CreateAlbumDto:
