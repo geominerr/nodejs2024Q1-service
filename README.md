@@ -128,6 +128,12 @@ cd nodejs2024q1-service
 git checkout feat/docker_db
 ```
 
+## Installing NPM modules
+
+```bash
+npm install
+```
+
 ## Environment
 
 Create .env and copy data from .env.example
