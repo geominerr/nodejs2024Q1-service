@@ -169,7 +169,7 @@ automatically.
 > run the following command:
 
 ```bash
-DB_HOST=127.0.0.1 npx prisma migrate deploy
+npx prisma migrate deploy
 ```
 
 or
