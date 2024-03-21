@@ -35,6 +35,7 @@ CREATE TABLE "Favorites" (
     "artists" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "albums" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "tracks" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "userId" UUID NOT NULL,
 
     CONSTRAINT "Favorites_pkey" PRIMARY KEY ("id")
 );
@@ -49,3 +50,9 @@ CREATE TABLE "Track" (
 
     CONSTRAINT "Track_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Favorites_userId_key" ON "Favorites"("userId");
+
+-- AddForeignKey
+ALTER TABLE "Favorites" ADD CONSTRAINT "Favorites_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
