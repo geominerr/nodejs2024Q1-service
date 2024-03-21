@@ -15,6 +15,11 @@ import { FavoriteEntityType } from './models/favorites-entity,model';
 export class DatabaseService {
   favoriteId: string = randomUUID();
 
+  initData = {
+    login: 'user',
+    password: 'random',
+  };
+
   constructor(private readonly prisma: PrismaService) {
     this.initDb();
   }
@@ -25,9 +30,16 @@ export class DatabaseService {
 
       this.favoriteId = favorites.id;
     } catch {
+      const testUser = await this.prisma.user.create({
+        data: {
+          ...this.initData,
+        },
+      });
+
       await this.prisma.favorites.create({
         data: {
           id: this.favoriteId,
+          userId: testUser.id,
         },
       });
     }
