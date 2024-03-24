@@ -8,7 +8,6 @@
   ],
   "watchOptions": {
     "watchFile": "fixedPollingInterval",
-    "watchDirectory": "fixedPollingInterval",
     "excludeDirectories": [
       "**/node_modules",
       "dist",
