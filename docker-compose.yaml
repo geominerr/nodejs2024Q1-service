@@ -6,7 +6,7 @@ networks:
 
 services:
   postgres_db:
-    restart: always
+    restart: on-failure
     build:
       context: .
       dockerfile: ./docker/postgres.dockerfile
@@ -30,7 +30,7 @@ services:
       retries: 5
 
   nest_app:
-    restart: always
+    restart: on-failure
     build:
       context: .
       dockerfile: ./docker/nest.dockerfile
