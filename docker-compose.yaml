@@ -1,0 +1,47 @@
+version: '3'
+
+networks:
+  user_bridge:
+    driver: bridge
+
+services:
+  postgres_db:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: ./docker/postgres.dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGUSER: ${POSTGRES_USER}
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+      - ./pg_logs:/logs
+    ports:
+      - ${DB_HOST_PORT}:${DB_CONTAINER_PORT}
+    networks:
+      - user_bridge
+
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-d', '${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  nest_app:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: ./docker/nest.dockerfile
+    volumes:
+      - ./src:/app/src
+    ports:
+      - '${PORT}:${CONTAINER_PORT}'
+    environment:
+      DB_HOST: postgres_db
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    networks:
+      - user_bridge

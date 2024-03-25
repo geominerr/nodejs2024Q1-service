@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
-import { Album, Artist, Track, User } from './models/db.model';
+import { PrismaService } from '../prisma/prisma.service';
+import { transformUserData } from './utils/user-transform.util';
+
+import { User, Track, Artist, Album } from './models/db.model';
 import { ICreateUserDto, IGetUserDto } from './models/user-dto.model';
 import { ICreateTrackDto, IGetTrackDto } from './models/track-dto.model';
 import { ICreateArtistDto, IGetArtistDto } from './models/artist-dto.model';
@@ -10,274 +13,314 @@ import { FavoriteEntityType } from './models/favorites-entity,model';
 
 @Injectable()
 export class DatabaseService {
-  private users: Map<string, User>;
-  private artists: Map<string, Artist>;
-  private albums: Map<string, Album>;
-  private tracks: Map<string, Track>;
-  private favorites = {
-    artists: new Map(),
-    albums: new Map(),
-    tracks: new Map(),
+  favoriteId: string = randomUUID();
+
+  initData = {
+    login: 'user',
+    password: 'random',
   };
 
-  constructor() {
-    this.users = new Map();
-    this.tracks = new Map();
-    this.artists = new Map();
-    this.albums = new Map();
+  constructor(private readonly prisma: PrismaService) {
+    this.initDb();
+  }
+
+  private async initDb() {
+    try {
+      const favorites = await this.prisma.favorites.findFirst();
+
+      this.favoriteId = favorites.id;
+    } catch {
+      const testUser = await this.prisma.user.create({
+        data: {
+          ...this.initData,
+        },
+      });
+
+      await this.prisma.favorites.create({
+        data: {
+          id: this.favoriteId,
+          userId: testUser.id,
+        },
+      });
+    }
   }
 
   // users
   public async createUser(dto: ICreateUserDto): Promise<User> {
-    const uuid = randomUUID();
-    const timestamp = new Date().getTime();
+    const user = await this.prisma.user.create({
+      data: {
+        ...dto,
+      },
+    });
 
-    const user: User = {
-      ...dto,
-      id: uuid,
-      version: 1,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
-
-    this.users.set(uuid, user);
-
-    return user;
+    return transformUserData(user);
   }
 
-  public async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  public async getUser(id: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+
+    if (!user) {
+      return null;
+    }
+
+    return transformUserData(user);
   }
 
   public async getAllUsers(): Promise<User[]> {
-    return [...this.users.values()];
+    const users = await this.prisma.user.findMany();
+
+    return users.map((user) => transformUserData(user));
   }
 
   public async updateUser(id: string, dto: IGetUserDto): Promise<User> {
-    const updatedUser: User = {
-      ...dto,
-      version: dto.version + 1,
-      updatedAt: new Date().getTime(),
-    };
+    const { password, version } = dto;
 
-    this.users.set(id, updatedUser);
+    const user = await this.prisma.user.update({
+      where: { id },
+      data: { password, version: version + 1 },
+    });
 
-    return updatedUser;
+    return transformUserData(user);
   }
 
-  public async removeUser(id: string): Promise<boolean> {
-    return this.users.delete(id);
+  public async removeUser(id: string): Promise<User | null> {
+    try {
+      const user = await this.prisma.user.delete({
+        where: { id: id },
+      });
+
+      return transformUserData(user);
+    } catch {
+      return null;
+    }
   }
 
-  // tracks
+  // tracks;
   public async createTrack(dto: ICreateTrackDto): Promise<Track> {
-    const uuid = randomUUID();
-
-    const track: Track = {
-      ...dto,
-      id: uuid,
-    };
-
-    this.tracks.set(uuid, track);
+    const track = await this.prisma.track.create({
+      data: {
+        ...dto,
+      },
+    });
 
     return track;
   }
 
-  public async getTrack(id: string): Promise<Track | undefined> {
-    return this.tracks.get(id);
+  public async getTrack(id: string): Promise<Track | null> {
+    return await this.prisma.track.findUnique({ where: { id } });
   }
 
   public async getAllTracks(): Promise<Track[]> {
-    return [...this.tracks.values()];
+    return await this.prisma.track.findMany();
   }
 
   public async updateTrack(id: string, dto: IGetTrackDto): Promise<Track> {
-    const updatedtrack: Track = {
-      ...dto,
-    };
-
-    this.tracks.set(id, updatedtrack);
-
-    return updatedtrack;
+    return await this.prisma.track.update({ where: { id }, data: { ...dto } });
   }
 
-  public async removeTrack(id: string): Promise<boolean> {
-    this.favorites.tracks.delete(id);
-
-    return this.tracks.delete(id);
+  public async removeTrack(id: string): Promise<Track | null> {
+    try {
+      return await this.prisma.track.delete({ where: { id } });
+    } catch {
+      return null;
+    }
   }
 
   // artists
   public async createArtist(dto: ICreateArtistDto): Promise<Artist> {
-    const uuid = randomUUID();
-
-    const artist: Artist = {
-      ...dto,
-      id: uuid,
-    };
-
-    this.artists.set(uuid, artist);
-
-    return artist;
+    return await this.prisma.artist.create({ data: { ...dto } });
   }
 
   public async getArtist(id: string): Promise<Artist | undefined> {
-    return this.artists.get(id);
+    return await this.prisma.artist.findUnique({ where: { id } });
   }
 
   public async getAllArtists(): Promise<Artist[]> {
-    return [...this.artists.values()];
+    return await this.prisma.artist.findMany();
   }
 
   public async updateArtist(id: string, dto: IGetArtistDto): Promise<Artist> {
-    const updatedArtist: Artist = {
-      ...dto,
-    };
-
-    this.artists.set(id, updatedArtist);
-
-    return updatedArtist;
+    return await this.prisma.artist.update({ where: { id }, data: { ...dto } });
   }
 
-  public async removeArtist(id: string): Promise<boolean> {
-    const res = this.artists.delete(id);
+  public async removeArtist(id: string): Promise<string | null> {
+    const { prisma } = this;
 
-    if (res) {
-      this.favorites.artists.delete(id);
-
-      [...this.albums.values()].forEach((album) => {
-        if (album.artistId === id) {
-          const updatedAlbum: Album = {
-            ...album,
+    try {
+      await prisma.$transaction([
+        prisma.artist.delete({ where: { id } }),
+        prisma.album.updateMany({
+          where: { artistId: id },
+          data: {
             artistId: null,
-          };
-
-          this.albums.set(album.id, updatedAlbum);
-        }
-      });
-
-      [...this.tracks.values()].forEach((track) => {
-        if (track.artistId === id) {
-          const updatedTrack: Track = {
-            ...track,
+          },
+        }),
+        prisma.track.updateMany({
+          where: { artistId: id },
+          data: {
             artistId: null,
-          };
+          },
+        }),
+      ]);
 
-          this.tracks.set(track.id, updatedTrack);
-        }
-      });
+      return id;
+    } catch {
+      return null;
     }
-
-    return res;
   }
 
   // albums
   public async createAlbum(dto: ICreateAlbumDto): Promise<Album> {
-    const uuid = randomUUID();
-
-    const album: Album = {
-      ...dto,
-      id: uuid,
-    };
-
-    this.albums.set(uuid, album);
-
-    return album;
+    return await this.prisma.album.create({ data: { ...dto } });
   }
 
   public async getAlbum(id: string): Promise<Album | undefined> {
-    return this.albums.get(id);
+    return await this.prisma.album.findUnique({ where: { id } });
   }
 
   public async getAllAlbums(): Promise<Album[]> {
-    return [...this.albums.values()];
+    return await this.prisma.album.findMany();
   }
 
   public async updateAlbum(
     id: string,
     dto: ICreateAlbumDto,
   ): Promise<Album | null> {
-    const album = this.albums.get(id);
-
-    if (!album) {
+    try {
+      return await this.prisma.album.update({
+        where: { id },
+        data: { ...dto },
+      });
+    } catch {
       return null;
     }
-
-    const updatedAlbum: Album = {
-      ...album,
-      ...dto,
-    };
-
-    this.albums.set(id, updatedAlbum);
-
-    return updatedAlbum;
   }
 
-  public async removeAlbum(id: string): Promise<boolean> {
-    const res = this.albums.delete(id);
+  public async removeAlbum(id: string): Promise<string | null> {
+    const { prisma } = this;
 
-    if (res) {
-      this.favorites.albums.delete(id);
-
-      [...this.tracks.values()].forEach((track) => {
-        if (track.albumId === id) {
-          const updatedTrack: Track = {
-            ...track,
+    try {
+      await prisma.$transaction([
+        prisma.album.delete({ where: { id } }),
+        prisma.track.updateMany({
+          where: { albumId: id },
+          data: {
             albumId: null,
-          };
+          },
+        }),
+      ]);
 
-          this.tracks.set(track.id, updatedTrack);
-        }
-      });
+      return id;
+    } catch {
+      return null;
     }
-
-    return res;
   }
 
   // favorites
   public async getFavorites() {
-    return Object.keys(this.favorites).reduce((obj, key) => {
-      obj[key] = [...this.favorites?.[key]?.keys()]?.reduce((acc, id) => {
-        if (this?.[key]?.has(id)) {
-          acc.push(this[key].get(id));
-        }
+    const { prisma } = this;
+    const favorites = await prisma.favorites.findUnique({
+      where: { id: this.favoriteId },
+    });
 
-        return acc;
-      }, []);
+    const artists = await prisma.artist.findMany({
+      where: { id: { in: favorites.artists } },
+    });
+    const albums = await prisma.album.findMany({
+      where: { id: { in: favorites.albums } },
+    });
+    const tracks = await prisma.track.findMany({
+      where: { id: { in: favorites.tracks } },
+    });
 
-      return obj;
-    }, {});
+    const res = {
+      artists: artists || [],
+      albums: albums || [],
+      tracks: tracks || [],
+    };
+
+    return res;
   }
 
   public async addFavorite(
     type: FavoriteEntityType,
     id: string,
   ): Promise<string | null> {
+    const { prisma, favoriteId } = this;
+
     switch (type) {
       case 'album':
-        if (this.albums.has(id)) {
-          this.favorites.albums.set(id, type);
+        try {
+          const album = await prisma.album.findUnique({ where: { id } });
+
+          if (!album) {
+            return null;
+          }
+
+          const ids = await prisma.favorites.findUnique({
+            where: { id: favoriteId },
+            select: { albums: true },
+          });
+
+          await prisma.favorites.update({
+            where: { id: favoriteId },
+            data: {
+              albums: [...new Set([...ids.albums, id])],
+            },
+          });
 
           return id;
+        } catch {
+          return null;
         }
-
-        return null;
       case 'artist':
-        if (this.artists.has(id)) {
-          this.favorites.artists.set(id, type);
+        try {
+          const artist = await prisma.artist.findUnique({ where: { id } });
+
+          if (!artist) {
+            return null;
+          }
+
+          const artistIds = await prisma.favorites.findUnique({
+            where: { id: favoriteId },
+            select: { artists: true },
+          });
+
+          await prisma.favorites.update({
+            where: { id: favoriteId },
+            data: {
+              artists: [...new Set([...artistIds.artists, id])],
+            },
+          });
 
           return id;
+        } catch {
+          return null;
         }
-
-        return null;
       case 'track':
-        if (this.tracks.has(id)) {
-          this.favorites.tracks.set(id, type);
+        try {
+          const track = await prisma.track.findUnique({ where: { id } });
+
+          if (!track) {
+            return null;
+          }
+
+          const trackIds = await prisma.favorites.findUnique({
+            where: { id: favoriteId },
+            select: { tracks: true },
+          });
+
+          await prisma.favorites.update({
+            where: { id: favoriteId },
+            data: {
+              tracks: [...new Set([...trackIds.tracks, id])],
+            },
+          });
 
           return id;
+        } catch {
+          return null;
         }
-
-        return null;
       default:
         return null;
     }
@@ -286,16 +329,60 @@ export class DatabaseService {
   public async removeFavorite(
     type: FavoriteEntityType,
     id: string,
-  ): Promise<boolean> {
+  ): Promise<string | null> {
+    const { prisma, favoriteId } = this;
+
     switch (type) {
       case 'album':
-        return this.favorites.albums.delete(id);
+        const album = await prisma.favorites.findUnique({
+          where: { id: favoriteId },
+          select: { albums: true },
+        });
+
+        if (!album.albums.includes(id)) {
+          return null;
+        }
+
+        await prisma.favorites.update({
+          where: { id: favoriteId },
+          data: { albums: [...album.albums.filter((id) => id !== id)] },
+        });
+
+        return id;
       case 'artist':
-        return this.favorites.artists.delete(id);
+        const artist = await prisma.favorites.findUnique({
+          where: { id: favoriteId },
+          select: { artists: true },
+        });
+
+        if (!artist.artists.includes(id)) {
+          return null;
+        }
+
+        await prisma.favorites.update({
+          where: { id: favoriteId },
+          data: { artists: [...artist.artists.filter((id) => id !== id)] },
+        });
+
+        return id;
       case 'track':
-        return this.favorites.tracks.delete(id);
+        const track = await prisma.favorites.findUnique({
+          where: { id: favoriteId },
+          select: { tracks: true },
+        });
+
+        if (!track.tracks.includes(id)) {
+          return null;
+        }
+
+        await prisma.favorites.update({
+          where: { id: favoriteId },
+          data: { tracks: [...track.tracks.filter((id) => id !== id)] },
+        });
+
+        return id;
       default:
-        return false;
+        return null;
     }
   }
 }
