@@ -50,7 +50,11 @@ export class AuthController {
   @HttpCode(200)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Refresh' })
-  @ApiResponse({ status: 200, description: 'Tokens refreshed successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Tokens refreshed successfully',
+    type: Tokens,
+  })
   @ApiResponse({
     status: 401,
     description: 'Invalid request: refreshToken is missing',
