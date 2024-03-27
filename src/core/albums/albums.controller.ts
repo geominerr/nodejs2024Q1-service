@@ -9,7 +9,12 @@ import {
   ParseUUIDPipe,
   Put,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { AlbumsService } from './albums.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
@@ -17,6 +22,7 @@ import { UpdateAlbumDto } from './dto/update-album.dto';
 
 import { Album } from './entities/album.entity';
 
+@ApiBearerAuth()
 @ApiTags('Album')
 @Controller('album')
 export class AlbumsController {
