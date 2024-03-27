@@ -9,7 +9,12 @@ import {
   HttpCode,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { TracksService } from './tracks.service';
 import { CreateTrackDto } from './dto/create-track.dto';
@@ -17,6 +22,7 @@ import { UpdateTrackDto } from './dto/update-track.dto';
 
 import { Track } from './entities/track.entity';
 
+@ApiBearerAuth()
 @ApiTags('Track')
 @Controller('track')
 export class TracksController {

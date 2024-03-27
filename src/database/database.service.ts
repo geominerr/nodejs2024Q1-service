@@ -46,6 +46,16 @@ export class DatabaseService {
   }
 
   // users
+  async getUserByLogin(login: string): Promise<User | null> {
+    const user = await this.prisma.user.findFirst({ where: { login } });
+
+    if (!user) {
+      return null;
+    }
+
+    return transformUserData(user);
+  }
+
   public async createUser(dto: ICreateUserDto): Promise<User> {
     const user = await this.prisma.user.create({
       data: {

@@ -7,7 +7,12 @@ import {
   ParseUUIDPipe,
   HttpCode,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { FavoritesService } from './favorites.service';
 import { Favorites } from './entities/favorite.entity';
@@ -15,6 +20,7 @@ import { Track } from '../tracks/entities/track.entity';
 import { Album } from '../albums/entities/album.entity';
 import { Artist } from '../artists/entities/artist.entity';
 
+@ApiBearerAuth()
 @ApiTags('Favorites')
 @Controller('favs')
 export class FavoritesController {
